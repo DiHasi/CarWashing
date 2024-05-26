@@ -1,0 +1,6 @@
+﻿services:
+  carwashing:
+    image: carwashing
+    build:
+      context: .
+      dockerfile: CarWashing/Dockerfile

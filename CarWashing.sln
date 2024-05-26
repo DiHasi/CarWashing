@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarWashing.API", "CarWashing.API\CarWashing.API.csproj", "{AA38443F-C4A4-4522-B930-6D4A4BC3F667}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EAE10914-31BF-4B3C-BCC1-D8B07318A306}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarWashing.Domain", "CarWashing.Domain\CarWashing.Domain.csproj", "{5702BAEE-A72F-4665-960B-91A373995606}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarWashing.Persistence", "CarWashing.Persistence\CarWashing.Persistence.csproj", "{8393D128-6150-45AC-9C39-138FB0CF2BED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarWashing.Application", "CarWashing.Application\CarWashing.Application.csproj", "{42DA09D3-BD9A-4F6B-9229-2DF864B4F889}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AA38443F-C4A4-4522-B930-6D4A4BC3F667}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA38443F-C4A4-4522-B930-6D4A4BC3F667}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA38443F-C4A4-4522-B930-6D4A4BC3F667}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA38443F-C4A4-4522-B930-6D4A4BC3F667}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5702BAEE-A72F-4665-960B-91A373995606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5702BAEE-A72F-4665-960B-91A373995606}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5702BAEE-A72F-4665-960B-91A373995606}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5702BAEE-A72F-4665-960B-91A373995606}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8393D128-6150-45AC-9C39-138FB0CF2BED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8393D128-6150-45AC-9C39-138FB0CF2BED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8393D128-6150-45AC-9C39-138FB0CF2BED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8393D128-6150-45AC-9C39-138FB0CF2BED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42DA09D3-BD9A-4F6B-9229-2DF864B4F889}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42DA09D3-BD9A-4F6B-9229-2DF864B4F889}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42DA09D3-BD9A-4F6B-9229-2DF864B4F889}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42DA09D3-BD9A-4F6B-9229-2DF864B4F889}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
