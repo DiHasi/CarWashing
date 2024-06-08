@@ -1,8 +1,37 @@
+using CSharpFunctionalExtensions;
+
 namespace CarWashing.Domain.Models;
 
 public class Car
 {
-    public int Id { get; set; }
-    public string Model { get; set; }
-    public virtual Brand Brand { get; set; }
+    private Car(string model, Brand brand)
+    {
+        Model = model;
+        Brand = brand;
+    }
+    public int Id { get; private set; }
+    public string Model { get; private set; }
+    public Brand Brand { get; private set; }
+    
+    public static Result<Car> Create(string model, Brand brand)
+    {
+        return new Car(model, brand);
+    }
+    
+    public Result<Car> ChangeModel(string model)
+    {
+        if (string.IsNullOrEmpty(model)) return Result.Failure<Car>("Model cannot be empty");
+        if (model.Length > 100) return Result.Failure<Car>("Model cannot be longer than 100 characters");
+        
+        Model = model;
+
+        return Result.Success(this);
+    }
+
+    public Result<Car> ChangeBrand(Brand brand)
+    {
+        // if (brand == null) return Result.Failure<Car>("Brand cannot be null");
+        Brand = brand;
+        return Result.Success(this);
+    }
 }

@@ -6,4 +6,8 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\CarWashing.Persistence\CarWashing.Persistence.csproj" />
+    </ItemGroup>
+
 </Project>
