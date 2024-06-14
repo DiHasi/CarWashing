@@ -143,6 +143,23 @@ namespace CarWashing.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Administrator"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Employee"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "User"
+                        });
                 });
 
             modelBuilder.Entity("CarWashing.Persistence.Entities.ServiceEntity", b =>
@@ -182,6 +199,10 @@ namespace CarWashing.Persistence.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
 

@@ -8,6 +8,6 @@ public interface ICarRepository
     Task<IEnumerable<Car>> GetCars(CarFilter filter);
     Task<Car?> GetCar(int id);
     Task<Car> AddCar(Car car);
-    Task UpdateCar(int id, Car service);
+    Task UpdateCar(Car service);
     Task DeleteCar(int id);
 }

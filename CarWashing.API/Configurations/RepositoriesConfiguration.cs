@@ -10,5 +10,8 @@ public static class RepositoriesConfiguration
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<IBrandRepository, BrandRepository>();
         services.AddScoped<ICarRepository, CarRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICustomerCarRepository, CustomerCarRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
     }
 }

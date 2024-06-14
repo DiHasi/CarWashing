@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AutoFilter;
 using AutoMapper;
 using CarWashing.Domain.Filters;
@@ -17,16 +18,32 @@ public class BrandRepository(CarWashingContext context, IMapper mapper) : IBrand
             .AsNoTracking()
             .OrderBy(b => b.Id)
             .AutoFilter(filter);
-
-        if (!string.IsNullOrEmpty(filter.OrderBy))
-        {
-            var propertyInfo = typeof(Brand).GetProperty(filter.OrderBy);
-            if (propertyInfo != null)
-            {
-                query = query.OrderBy(filter.OrderBy);
-            }
-        }
         
+        if (filter.OrderBy.HasValue)
+        {
+            var sortBy = filter.OrderBy.Value.GetPath();
+            var parameter = Expression.Parameter(typeof(BrandEntity), "o");
+            Expression property;
+            if (sortBy.Contains('.'))
+            {
+                var parts = sortBy.Split('.');
+                property = Expression.Property(parameter, parts[0]);
+                for (var i = 1; i < parts.Length; i++)
+                {
+                    property = Expression.Property(property, parts[i]);
+                }
+            }
+            else
+            {
+                property = Expression.Property(parameter, sortBy);
+            }
+            var lambda = Expression.Lambda<Func<BrandEntity, object>>(property, parameter);
+
+            query = filter.ByDescending
+                ? query.OrderByDescending(lambda)
+                : query.OrderBy(lambda);
+        }
+
         query = query.Skip((filter.PageNumber - 1) * filter.PageSize).Take(filter.PageSize);
 
         var brandEntities = await query.ToListAsync();
@@ -47,12 +64,12 @@ public class BrandRepository(CarWashingContext context, IMapper mapper) : IBrand
         return mapper.Map<Brand>(addedBrand);
     }
 
-    public async Task UpdateBrand(int id, Brand service)
+    public async Task UpdateBrand(Brand brand)
     {
-        var brandEntity = await context.Brands.FindAsync(id);
+        var brandEntity = await context.Brands.FindAsync(brand.Id);
         if (brandEntity != null)
         {
-            brandEntity.Name = service.Name;
+            brandEntity.Name = brand.Name;
             await context.SaveChangesAsync();
         }
     }

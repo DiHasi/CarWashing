@@ -11,6 +11,9 @@ public static class AutoMapperConfiguration
             typeof(PriceProfile), 
             typeof(TimeProfile), 
             typeof(BrandProfile),
-            typeof(CarProfile));
+            typeof(CarProfile),
+            typeof(UserProfile),
+            typeof(CustomerCarProfile),
+            typeof(OrderProfile));
     }
 }

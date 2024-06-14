@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using CarWashing.Domain.Enums;
 using CarWashing.Domain.Models;
 using CarWashing.Persistence.Entities;
 // using CarWashing.Persistence.Migrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Role = CarWashing.Domain.Enums.Role;
 
 namespace CarWashing.Persistence.Context;
 
@@ -29,6 +31,17 @@ public class CarWashingContext : DbContext
             .WithMany(r => r.Users)
             .UsingEntity(j => j.ToTable("RoleUsers"));
         
+        var roles = Enum
+            .GetValues<Role>()
+            .Select(r => new RoleEntity
+            {
+                Id = (int)r,
+                Name = r.ToString()
+            });
+        
+        modelBuilder.Entity<RoleEntity>().HasData(roles);
+        
+
         modelBuilder.Entity<OrderEntity>()
             .HasMany(o => o.Services)
             .WithMany(s => s.Orders)

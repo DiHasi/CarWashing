@@ -18,22 +18,20 @@ public class Service
     
     public Time Time { get; private set;}
     
-    public static Result<Service> Create(string name, Price price, Time time)
+    public static Result<Service> Create(string name, int price, int time)
     {
-        if(string.IsNullOrWhiteSpace(name)) return Result.Failure<Service>("Name is required");
+        if(price < 0) return Result.Failure<Service>("Price cannot be negative");
+        if(time < 0) return Result.Failure<Service>("Time cannot be negative");
+        if(string.IsNullOrWhiteSpace(name)) return Result.Failure<Service>("Name cannot be empty");
         
-        if(price.MaxValue <= 0) return Result.Failure<Service>("Price must be positive");
-        
-        if(time.Minutes <= 0) return Result.Failure<Service>("Time must be positive");
-        
-        var service = new Service(name, price, time);
+        var service = new Service(name, Price.Create(price), Time.Create(time));
 
         return Result.Success(service);
     }
     
     public Result<Service> ChangeName(string name)
     {
-        if(string.IsNullOrWhiteSpace(name)) return Result.Failure<Service>("Name is required");
+        if(string.IsNullOrWhiteSpace(name)) return Result.Failure<Service>("Name cannot be empty");
         if(name.Length > 100) return Result.Failure<Service>("Name cannot be longer than 100 characters");
         
         Name = name;

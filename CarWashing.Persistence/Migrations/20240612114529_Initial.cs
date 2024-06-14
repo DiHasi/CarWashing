@@ -4,6 +4,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace CarWashing.Persistence.Migrations
 {
     /// <inheritdoc />
@@ -67,6 +69,7 @@ namespace CarWashing.Persistence.Migrations
                     LastName = table.Column<string>(type: "text", nullable: false),
                     Patronymic = table.Column<string>(type: "text", nullable: true),
                     Email = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
                     IsSendNotify = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -204,6 +207,16 @@ namespace CarWashing.Persistence.Migrations
                         principalTable: "Services",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Administrator" },
+                    { 2, "Employee" },
+                    { 3, "User" }
                 });
 
             migrationBuilder.CreateIndex(

@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AutoFilter;
 using AutoMapper;
 using CarWashing.Domain.Filters;
@@ -18,14 +19,30 @@ public class CarRepository (CarWashingContext context, IMapper mapper): ICarRepo
             .Include(c => c.Brand)
             .OrderBy(c => c.Id)
             .AutoFilter(filter);
-
-        if (!string.IsNullOrEmpty(filter.OrderBy))
+        
+        if (filter.OrderBy.HasValue)
         {
-            var propertyInfo = typeof(Car).GetProperty(filter.OrderBy);
-            if (propertyInfo != null)
+            var sortBy = filter.OrderBy.Value.GetPath();
+            var parameter = Expression.Parameter(typeof(CarEntity), "o");
+            Expression property;
+            if (sortBy.Contains('.'))
             {
-                query = query.OrderBy(filter.OrderBy);
+                var parts = sortBy.Split('.');
+                property = Expression.Property(parameter, parts[0]);
+                for (var i = 1; i < parts.Length; i++)
+                {
+                    property = Expression.Property(property, parts[i]);
+                }
             }
+            else
+            {
+                property = Expression.Property(parameter, sortBy);
+            }
+            var lambda = Expression.Lambda<Func<CarEntity, object>>(property, parameter);
+
+            query = filter.ByDescending
+                ? query.OrderByDescending(lambda)
+                : query.OrderBy(lambda);
         }
         
         query = query.Skip((filter.PageNumber - 1) * filter.PageSize).Take(filter.PageSize);
@@ -46,18 +63,29 @@ public class CarRepository (CarWashingContext context, IMapper mapper): ICarRepo
 
     public async Task<Car> AddCar(Car car)
     {
-        var addedBrand = context.Cars.Add(mapper.Map<CarEntity>(car)).Entity;
+        var carEntity = mapper.Map<CarEntity>(car);
+
+        var brandEntity = await context.Brands.FirstOrDefaultAsync(b => b.Name == car.Brand.Name);
+        if (brandEntity != null) carEntity.Brand = brandEntity;
+        
+        var addedCarEntity = context.Cars.Add(carEntity).Entity;
         await context.SaveChangesAsync();
-        return mapper.Map<Car>(addedBrand);
+        return mapper.Map<Car>(addedCarEntity);
     }
 
-    public async Task UpdateCar(int id, Car car)
+    public async Task UpdateCar(Car car)
     {
-        var carEntity = await context.Cars.FindAsync(id);
+        var carEntity = await context.Cars
+            .Include(c => c.Brand)
+            .FirstOrDefaultAsync(c => c.Id == car.Id);
+        
         if (carEntity != null)
         {
             carEntity.Model = car.Model;
-            carEntity.Brand = new BrandEntity{Name = car.Brand.Name};
+
+            var brandEntity = await context.Brands.FirstOrDefaultAsync(b => b.Name == car.Brand.Name);
+            if (brandEntity != null) carEntity.Brand = brandEntity;
+            
             await context.SaveChangesAsync();
         }
     }

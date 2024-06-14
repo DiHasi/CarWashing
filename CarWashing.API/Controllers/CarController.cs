@@ -1,17 +1,22 @@
 using CarWashing.Application.Services;
 using CarWashing.Contracts.Car;
+using CarWashing.Domain.Enums;
 using CarWashing.Domain.Filters;
 using Microsoft.AspNetCore.Mvc;
 using CarWashing.Domain.Models;
+using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CarWashing.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = nameof(Role.Administrator))]
 public class CarController(CarService carService, BrandService brandService) : ControllerBase
 {
     // GET: api/Car
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<CarResponse>>> GetCars([FromQuery]CarFilter filter)
     {
         var cars = await carService.GetCars(filter);
@@ -22,6 +27,7 @@ public class CarController(CarService carService, BrandService brandService) : C
 
     // GET: api/Car/5
     [HttpGet("{id:int}")]
+    [AllowAnonymous]
     public async Task<ActionResult<CarResponse>> GetCar(int id)
     {
         var car = await carService.GetCar(id);
@@ -38,21 +44,8 @@ public class CarController(CarService carService, BrandService brandService) : C
     [HttpPut("{id:int}")]
     public async Task<IActionResult> PutCar(int id, CarRequest request)
     {
-        var carToUpdate = await carService.GetCar(id);
-        if (carToUpdate == null) return NotFound();
-
-        var brand = await brandService.GetBrand(request.BrandId);
-        if (brand == null) return BadRequest("Brand not found");
-        
-        // var result = Car.Create(request.Model, brand);
-        
-        var result = carToUpdate
-            .ChangeModel(request.Model).Value
-            .ChangeBrand(brand); 
-        
-        if(result.IsFailure) return BadRequest(result.Error);
-        
-        await carService.UpdateCar(id, result.Value);
+        var result = await carService.UpdateCar(id, request.Model, request.BrandId);
+        if (result.IsFailure) return BadRequest(result.Error);
         return Ok("Updated");
     }
 
@@ -60,16 +53,11 @@ public class CarController(CarService carService, BrandService brandService) : C
     [HttpPost]
     public async Task<ActionResult<CarEntity>> PostCar(CarRequest request)
     {
-        var brand = await brandService.GetBrand(request.BrandId);
-        if (brand == null) return BadRequest("Brand not found");
-        
-        var result = Car.Create(request.Model, brand);
+        var result = await carService.AddCar(request.Model, request.BrandId);
         if(result.IsFailure) return BadRequest(result.Error);
-        
-        var car = await carService.AddCar(result.Value);
 
-        var response = new CarResponse(car.Id, car.Model, car.Brand.Name);
-        return CreatedAtAction("GetCar", new { id = car.Id }, response);
+        var response = new CarResponse(result.Value.Id, result.Value.Model, result.Value.Brand.Name);
+        return CreatedAtAction("GetCar", new { id = result.Value.Id }, response);
     }
 
     // DELETE: api/Car/5

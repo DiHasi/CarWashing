@@ -1,24 +1,26 @@
 using CarWashing.Application.Services;
 using CarWashing.Contracts.Brand;
+using CarWashing.Domain.Enums;
 using CarWashing.Domain.Filters;
-using CarWashing.Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarWashing.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = nameof(Role.Administrator))]
 public class BrandController(BrandService brandService) : ControllerBase
 {
-        
     // GET: api/Brand
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<BrandResponse>>> GetBrands([FromQuery] BrandFilter filter)
     {
         var brands = await brandService.GetBrands(filter);
         return Ok(brands);
     }
-    
+    [AllowAnonymous]
     // GET: api/Brand/5
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BrandResponse>> GetBrand(int id)
@@ -37,20 +39,8 @@ public class BrandController(BrandService brandService) : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> PutBrand(int id, [FromBody]string name)
     {
-        var brandToUpdate = await brandService.GetBrand(id);
-        
-        if(brandToUpdate == null) return NotFound();
-        
-        // var result = Brand.Create(name);
-        //     
-        // if(result.IsFailure) return BadRequest(result.Error);
-            
-        var result = brandToUpdate.ChangeName(name);
-        
+        var result = await brandService.UpdateBrand(id, name);
         if(result.IsFailure) return BadRequest(result.Error);
-        
-        await brandService.UpdateBrand(id, result.Value);
-            
         return Ok("Updated");
     }
 
@@ -58,14 +48,12 @@ public class BrandController(BrandService brandService) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<BrandResponse>> PostBrand([FromBody]string name)
     {
-        var result = Brand.Create(name);
-            
+        var result = await brandService.AddBrand(name);
         if(result.IsFailure) return BadRequest(result.Error);
-            
-        var brand = await brandService.AddBrand(result.Value);
-
-        var response = new BrandResponse(brand.Id, brand.Name);
-        return CreatedAtAction("GetBrands", new { id = brand.Id }, response);
+        
+        var response = new BrandResponse(result.Value.Id, result.Value.Name);
+        
+        return CreatedAtAction("GetBrands", new { id = result.Value.Id }, response);
     }
 
     // DELETE: api/Brand/5

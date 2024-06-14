@@ -20,7 +20,6 @@ public class Car
     
     public Result<Car> ChangeModel(string model)
     {
-        if (string.IsNullOrEmpty(model)) return Result.Failure<Car>("Model cannot be empty");
         if (model.Length > 100) return Result.Failure<Car>("Model cannot be longer than 100 characters");
         
         Model = model;
@@ -30,7 +29,6 @@ public class Car
 
     public Result<Car> ChangeBrand(Brand brand)
     {
-        // if (brand == null) return Result.Failure<Car>("Brand cannot be null");
         Brand = brand;
         return Result.Success(this);
     }

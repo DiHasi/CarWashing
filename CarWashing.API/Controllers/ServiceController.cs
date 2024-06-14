@@ -1,27 +1,32 @@
 using CarWashing.Application.Services;
 using CarWashing.Contracts.Service;
+using CarWashing.Domain.Enums;
 using CarWashing.Domain.Filters;
 using Microsoft.AspNetCore.Mvc;
 using CarWashing.Domain.Models;
 using CarWashing.Domain.ValueObjects;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CarWashing.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = nameof(Role.Administrator))]
 public class ServiceController(ServiceService serviceService) : ControllerBase
 {
     // GET: api/Service
+    [AllowAnonymous]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ServiceResponse>>> GetServices([FromQuery] ServiceFilter filter)
     {
         var services = await serviceService.GetServices(filter);
-        var serviceResponses = services
+        var serviceResponses = services.Value
             .Select(service => new ServiceResponse(service.Id, service.Name, service.Price, service.Time));
         return Ok(serviceResponses);
     }
     
     // GET: api/Service/5
+    [AllowAnonymous]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ServiceResponse>> GetService(int id)
     {
@@ -39,37 +44,20 @@ public class ServiceController(ServiceService serviceService) : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> PutService(int id, ServiceRequest service)
     {
-        var serviceToUpdate = await serviceService.GetService(id);
-        if(serviceToUpdate == null) return NotFound();
-        
-        var result = serviceToUpdate
-            .ChangeName(service.Name).Value
-            .ChangePrice(Price.Create(service.Price)).Value
-            .ChangeTime(Time.Create(service.Time));
-            
-        if(result.IsFailure) return BadRequest(result.Error);
-            
-            
-        await serviceService.UpdateService(id, result.Value
-        );
-            
+        var result = await serviceService.UpdateService(id, service.Name, service.Price, service.Time);
+        if (result.IsFailure) return BadRequest(result.Error);
         return Ok("Updated");
     }
 
     // POST: api/Service
     [HttpPost]
-    public async Task<ActionResult<ServiceResponse>> PostService(ServiceRequest serviceRequest)
+    public async Task<ActionResult<ServiceResponse>> PostService(ServiceRequest request)
     {
-        var result = Service.Create(serviceRequest.Name,
-            Price.Create(serviceRequest.Price),
-            Time.Create(serviceRequest.Time));
-            
+        var result = await serviceService.AddService(request.Name, request.Price, request.Time);
         if(result.IsFailure) return BadRequest(result.Error);
-            
-        var service = await serviceService.AddService(result.Value);
 
-        var response = new ServiceResponse(service.Id, service.Name, service.Price, service.Time);
-        return CreatedAtAction("GetService", new { id = service.Id }, response);
+        var response = new ServiceResponse(result.Value.Id, result.Value.Name, result.Value.Price, result.Value.Time);
+        return CreatedAtAction("GetService", new { id = result.Value.Id }, response);
     }
 
     // DELETE: api/Service/5
