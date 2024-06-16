@@ -88,12 +88,10 @@ public class OrderService(
 
         var servicesToAdd = newServices.Where(s => !existingServiceIds.Contains(s.Id)).ToList();
 
-        if (servicesToAdd.Count != 0)
-        {
-            await orderRepository.AddServices(id, servicesToAdd);
-        }
+        if (servicesToAdd.Count == 0) return Result.Failure<Order>("All services are already added");
+        var result = await orderRepository.AddServices(id, servicesToAdd);
         
-        return Result.Success(order);
+        return result.IsFailure ? Result.Failure<Order>(result.Error) : Result.Success(order);
     }
     
     public async Task<Result<Order>> CompleteOrder(int id)

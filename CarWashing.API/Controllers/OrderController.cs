@@ -144,7 +144,7 @@ public class OrderController(OrderService orderService) : ControllerBase
     // POST: api/Order/5/Complete
     [HttpPost("{id:int}/Complete")]
     [Authorize(Roles = nameof(Role.Administrator))]
-    public async Task<IActionResult> CompleteOrder(int id, [FromBody] List<int> serviceIds)
+    public async Task<IActionResult> CompleteOrder(int id)
     {
         var service = await orderService.GetOrder(id);
         if (service == null) return NotFound("Order not found");
@@ -153,6 +153,6 @@ public class OrderController(OrderService orderService) : ControllerBase
 
         if (result.IsFailure) return BadRequest(result.Error);
 
-        return Ok("Services added");
+        return Ok("Order completed");
     }
 }
