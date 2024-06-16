@@ -11,6 +11,7 @@ public interface IUserRepository
     Task<User?> GetUser(int id);
     Task<User?> GetUserByEmail(string email);
     Task<User> AddUser(User user);
+    Task<Role> GetRole(Role role);
     Task UpdateUser(User user);
     Task DeleteUser(int id);
     Task ChangeUserRoles(int id, List<Role> roles);

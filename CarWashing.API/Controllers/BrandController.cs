@@ -14,13 +14,11 @@ public class BrandController(BrandService brandService) : ControllerBase
 {
     // GET: api/Brand
     [HttpGet]
-    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<BrandResponse>>> GetBrands([FromQuery] BrandFilter filter)
     {
         var brands = await brandService.GetBrands(filter);
         return Ok(brands);
     }
-    [AllowAnonymous]
     // GET: api/Brand/5
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BrandResponse>> GetBrand(int id)
@@ -34,7 +32,7 @@ public class BrandController(BrandService brandService) : ControllerBase
         
         return new BrandResponse(brand.Id, brand.Name);
     }
-
+    
     // PUT: api/Brand/5
     [HttpPut("{id:int}")]
     public async Task<IActionResult> PutBrand(int id, [FromBody]string name)

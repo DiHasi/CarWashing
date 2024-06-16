@@ -18,7 +18,6 @@ public class OrderController(OrderService orderService) : ControllerBase
 {
     // GET: api/Order
     [HttpGet]
-    [Authorize(Roles = nameof(Role.Employee))]
     public async Task<ActionResult<IEnumerable<OrderResponse>>> GetOrders(
         [FromQuery] OrderFilter filter)
     {
@@ -36,8 +35,8 @@ public class OrderController(OrderService orderService) : ControllerBase
             var customerCar = new CustomerCarResponse(order.CustomerCar.Id, car, order.CustomerCar.Customer.FullName,
                 order.CustomerCar.Customer.Email, order.CustomerCar.Year, order.CustomerCar.Number);
             var services = order.Services.Select(x => new ServiceResponse(x.Id, x.Name, x.Price, x.Time)).ToList();
-            orderResponses.Add(new OrderResponse(order.Id, (int)order.Status, order.StartDate.ToLongDateString(),
-                order.EndDate.ToLongDateString(), order.TotalPrice, order.TotalTime, administrator, employee,
+            orderResponses.Add(new OrderResponse(order.Id, order.Status, order.StartDate.ToString("G"),
+                order.EndDate.ToString("G"), order.TotalPrice, order.TotalTime, administrator, employee,
                 customerCar, services));
         }
 
@@ -46,7 +45,6 @@ public class OrderController(OrderService orderService) : ControllerBase
 
     // GET: api/Order/5
     [HttpGet("{id:int}")]
-    [Authorize(Roles = nameof(Role.Employee))]
     public async Task<ActionResult<OrderResponse>> GetOrder(int id)
     {
         var order = await orderService.GetOrder(id);
@@ -63,13 +61,14 @@ public class OrderController(OrderService orderService) : ControllerBase
         var customerCar = new CustomerCarResponse(order.CustomerCar.Id, car, order.CustomerCar.Customer.FullName,
             order.CustomerCar.Customer.Email, order.CustomerCar.Year, order.CustomerCar.Number);
         var services = order.Services.Select(x => new ServiceResponse(x.Id, x.Name, x.Price, x.Time)).ToList();
-        return new OrderResponse(order.Id, (int)order.Status, order.StartDate.ToLongDateString(),
-            order.EndDate.ToLongDateString(), order.TotalPrice, order.TotalTime, administrator, employee,
+        return new OrderResponse(order.Id, order.Status, order.StartDate.ToString("G"),
+            order.EndDate.ToString("G"), order.TotalPrice, order.TotalTime, administrator, employee,
             customerCar, services);
     }
 
     // PUT: api/Order/5
     [HttpPut("{id:int}")]
+    [Authorize(Roles = nameof(Role.Administrator))]
     public async Task<IActionResult> PutOrder(int id, OrderRequest request)
     {
         var result =
@@ -85,6 +84,7 @@ public class OrderController(OrderService orderService) : ControllerBase
 
     // POST: api/Order
     [HttpPost]
+    [Authorize(Roles = nameof(Role.Administrator))]
     public async Task<ActionResult<OrderResponse>> PostOrder(OrderRequest request)
     {
         var (_, isFailure, order, error) = await orderService.AddOrder(
@@ -102,8 +102,8 @@ public class OrderController(OrderService orderService) : ControllerBase
         var customerCar = new CustomerCarResponse(order.CustomerCar.Id, car, order.CustomerCar.Customer.FullName,
             order.CustomerCar.Customer.Email, order.CustomerCar.Year, order.CustomerCar.Number);
         var services = order.Services.Select(x => new ServiceResponse(x.Id, x.Name, x.Price, x.Time)).ToList();
-        var response = new OrderResponse(order.Id, (int)order.Status, order.StartDate.ToLongDateString(),
-            order.EndDate.ToLongDateString(), order.TotalPrice, order.TotalTime, administrator, employee,
+        var response = new OrderResponse(order.Id, order.Status, order.StartDate.ToString("G"),
+            order.EndDate.ToString("G"), order.TotalPrice, order.TotalTime, administrator, employee,
             customerCar,
             services);
 
@@ -112,6 +112,7 @@ public class OrderController(OrderService orderService) : ControllerBase
 
     // DELETE: api/Order/5
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = nameof(Role.Administrator))]
     public async Task<IActionResult> DeleteOrder(int id)
     {
         var service = await orderService.GetOrder(id);
@@ -127,6 +128,7 @@ public class OrderController(OrderService orderService) : ControllerBase
     
     // POST: api/Order/5/AddServices
     [HttpPost("{id:int}/AddServices")]
+    [Authorize(Roles = nameof(Role.Administrator))]
     public async Task<IActionResult> AddServices(int id, [FromBody] List<int> serviceIds)
     {
         var service = await orderService.GetOrder(id);
@@ -141,6 +143,7 @@ public class OrderController(OrderService orderService) : ControllerBase
     
     // POST: api/Order/5/Complete
     [HttpPost("{id:int}/Complete")]
+    [Authorize(Roles = nameof(Role.Administrator))]
     public async Task<IActionResult> CompleteOrder(int id, [FromBody] List<int> serviceIds)
     {
         var service = await orderService.GetOrder(id);

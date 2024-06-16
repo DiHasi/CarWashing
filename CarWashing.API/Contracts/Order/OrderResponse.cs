@@ -1,5 +1,6 @@
 using CarWashing.Contracts.CustomerCar;
 using CarWashing.Contracts.Service;
+using CarWashing.Domain.Enums;
 
 namespace CarWashing.Contracts.Order;
 
@@ -9,7 +10,7 @@ public record UserOrderResponse(
 
 public record OrderResponse(
     int Id,
-    int Status,
+    Status Status,
     string StartDate,
     string EndDate,
     int TotalPrice,

@@ -36,12 +36,10 @@ public class OrderService(
         var customerCar = await customerCarRepository.GetCustomerCar(customerCarId);
         if (customerCar == null) return Result.Failure<Order>("Customer car not found");
 
-
-        var services = await serviceRepository.GetServices(servicesIds: serviceIds);
+        var services = await serviceRepository.GetServices(serviceIds);
 
         var order = Order.Create(administrator, employee, customerCar, services.ToList());
         if (order.IsFailure) return Result.Failure<Order>(order.Error);
-
 
         return await orderRepository.AddOrder(order.Value);
     }

@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 using AutoFilter;
+using AutoFilter.Filters;
+using CarWashing.Domain.Enums;
 
 namespace CarWashing.Domain.Filters;
 
@@ -14,6 +16,9 @@ public class UserFilter : Filter
     [FilterProperty(StringFilter = StringFilterCondition.Contains, IgnoreCase = true)]
     public string? Email { get; set; }
     public bool? IsSendNotify { get; set; }
+    
+    [NotAutoFiltered]
+    public List<Role>? Roles { get; set; }
     
     [NotAutoFiltered]
     public UserSortableFields? OrderBy { get; set; }
@@ -31,5 +36,7 @@ public enum UserSortableFields
     [SortableFieldPath("Email")]
     Email,
     [SortableFieldPath("IsSendNotify")]
-    IsSendNotify
+    IsSendNotify,
+    [SortableFieldPath("Roles")]
+    Roles
 }

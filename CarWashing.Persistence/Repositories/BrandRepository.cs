@@ -37,7 +37,9 @@ public class BrandRepository(CarWashingContext context, IMapper mapper) : IBrand
             {
                 property = Expression.Property(parameter, sortBy);
             }
-            var lambda = Expression.Lambda<Func<BrandEntity, object>>(property, parameter);
+
+            var converted = Expression.Convert(property, typeof(object));
+            var lambda = Expression.Lambda<Func<BrandEntity, object>>(converted, parameter);
 
             query = filter.ByDescending
                 ? query.OrderByDescending(lambda)

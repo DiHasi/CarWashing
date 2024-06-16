@@ -22,6 +22,17 @@ public class UserRepository(CarWashingContext context, IMapper mapper) : IUserRe
             .OrderBy(u => u.Id)
             .AutoFilter(filter);
 
+        if (filter.Roles != null && filter.Roles.Count != 0)
+        {
+            var userIdsWithRoles = context.Roles
+                .Include(r => r.Users)
+                .Where(ur => filter.Roles.Contains((Role)ur.Id))
+                .SelectMany(r => r.Users!.Select(u => u.Id))
+                .Distinct();
+
+            query = query.Where(u => userIdsWithRoles.Contains(u.Id));
+        }
+
         if (filter.OrderBy.HasValue)
         {
             var sortBy = filter.OrderBy.Value.GetPath();
@@ -40,7 +51,9 @@ public class UserRepository(CarWashingContext context, IMapper mapper) : IUserRe
             {
                 property = Expression.Property(parameter, sortBy);
             }
-            var lambda = Expression.Lambda<Func<UserEntity, object>>(property, parameter);
+
+            var converted = Expression.Convert(property, typeof(object));
+            var lambda = Expression.Lambda<Func<UserEntity, object>>(converted, parameter);
 
             query = filter.ByDescending
                 ? query.OrderByDescending(lambda)
@@ -74,10 +87,29 @@ public class UserRepository(CarWashingContext context, IMapper mapper) : IUserRe
 
     public async Task<User> AddUser(User user)
     {
-        var addedUser = context.Users.Add(mapper.Map<UserEntity>(user)).Entity;
+        var userEntity = mapper.Map<UserEntity>(user);
+
+        if (userEntity.Roles != null)
+            for (var i = 0; i < userEntity.Roles.Count; i++)
+            {
+                var existingRole = await context.Roles.FindAsync(userEntity.Roles[i].Id);
+
+                if (existingRole != null)
+                {
+                    userEntity.Roles[i] = existingRole;
+                }
+            }
+
+        var addedUser = context.Users.Add(userEntity).Entity;
         await context.SaveChangesAsync();
 
         return mapper.Map<User>(addedUser);
+    }
+
+    public async Task<Role> GetRole(Role role)
+    {
+        var roleEntity = await context.Roles.FirstOrDefaultAsync(r => r.Name == role.ToString());
+        return mapper.Map<Role>(roleEntity);
     }
 
     public async Task UpdateUser(User service)

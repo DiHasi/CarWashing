@@ -38,7 +38,9 @@ public class CarRepository (CarWashingContext context, IMapper mapper): ICarRepo
             {
                 property = Expression.Property(parameter, sortBy);
             }
-            var lambda = Expression.Lambda<Func<CarEntity, object>>(property, parameter);
+            
+            var converted = Expression.Convert(property, typeof(object));
+            var lambda = Expression.Lambda<Func<CarEntity, object>>(converted, parameter);
 
             query = filter.ByDescending
                 ? query.OrderByDescending(lambda)

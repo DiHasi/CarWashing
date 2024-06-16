@@ -16,7 +16,6 @@ public class CarController(CarService carService, BrandService brandService) : C
 {
     // GET: api/Car
     [HttpGet]
-    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<CarResponse>>> GetCars([FromQuery]CarFilter filter)
     {
         var cars = await carService.GetCars(filter);
@@ -27,7 +26,6 @@ public class CarController(CarService carService, BrandService brandService) : C
 
     // GET: api/Car/5
     [HttpGet("{id:int}")]
-    [AllowAnonymous]
     public async Task<ActionResult<CarResponse>> GetCar(int id)
     {
         var car = await carService.GetCar(id);

@@ -17,10 +17,10 @@ builder.Services.AddSwaggerGen(c =>
         BearerFormat = "JWT",
         Description = "JWT Authorization header using the Bearer scheme."
     });
+    
+    
     c.OperationFilter<AuthResponsesOperationFilter>();
 });
-
-
 
 builder.Services.AddDbContext<CarWashingContext>();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(nameof(JwtOptions)));

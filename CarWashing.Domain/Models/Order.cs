@@ -18,7 +18,7 @@ public class Order
     public User Employee { get; private set; }
     public CustomerCar CustomerCar { get; private set; }
     public Status Status { get; private set; } = Status.InProgress;
-    public DateTime StartDate { get; private set; } = DateTime.Now;
+    public DateTime StartDate { get; private set; } = DateTime.UtcNow;
     public DateTime EndDate => StartDate.AddMinutes(_services.Sum(s => s.Time.Minutes));
 
     public int TotalPrice => _services.Sum(s => s.Price.MaxValue);

@@ -74,6 +74,7 @@ public class UserService(
             return Result.Failure<string>("Password must be at least 8 characters long");
         }
 
+        var role = await userRepository.GetRole(Role.User);
         var hash = passwordHasher.Generate(password);
         var user = User.Create(firstName, lastName, patronymic, email, hash, isSendNotify, [Role.User]).Value;
         await userRepository.AddUser(user);
