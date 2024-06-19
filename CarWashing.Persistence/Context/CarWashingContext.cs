@@ -22,7 +22,7 @@ public class CarWashingContext : DbContext
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql(_configuration.GetConnectionString("Default"));
+        => optionsBuilder.UseNpgsql(_configuration.GetConnectionString("Default")).EnableSensitiveDataLogging();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

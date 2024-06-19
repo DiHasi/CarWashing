@@ -35,8 +35,8 @@ public class OrderController(OrderService orderService) : ControllerBase
             var customerCar = new CustomerCarResponse(order.CustomerCar.Id, car, order.CustomerCar.Customer.FullName,
                 order.CustomerCar.Customer.Email, order.CustomerCar.Year, order.CustomerCar.Number);
             var services = order.Services.Select(x => new ServiceResponse(x.Id, x.Name, x.Price, x.Time)).ToList();
-            orderResponses.Add(new OrderResponse(order.Id, order.Status, order.StartDate.ToString("G"),
-                order.EndDate.ToString("G"), order.TotalPrice, order.TotalTime, administrator, employee,
+            orderResponses.Add(new OrderResponse(order.Id, order.Status, order.StartDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm"),
+                order.EndDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm"), order.TotalPrice, order.TotalTime, administrator, employee,
                 customerCar, services));
         }
 
@@ -61,15 +61,15 @@ public class OrderController(OrderService orderService) : ControllerBase
         var customerCar = new CustomerCarResponse(order.CustomerCar.Id, car, order.CustomerCar.Customer.FullName,
             order.CustomerCar.Customer.Email, order.CustomerCar.Year, order.CustomerCar.Number);
         var services = order.Services.Select(x => new ServiceResponse(x.Id, x.Name, x.Price, x.Time)).ToList();
-        return new OrderResponse(order.Id, order.Status, order.StartDate.ToString("G"),
-            order.EndDate.ToString("G"), order.TotalPrice, order.TotalTime, administrator, employee,
+        return new OrderResponse(order.Id, order.Status, order.StartDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm"),
+            order.EndDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm"), order.TotalPrice, order.TotalTime, administrator, employee,
             customerCar, services);
     }
 
     // PUT: api/Order/5
     [HttpPut("{id:int}")]
     [Authorize(Roles = nameof(Role.Administrator))]
-    public async Task<IActionResult> PutOrder(int id, OrderRequest request)
+    public async Task<IActionResult> PutOrder(int id, OrderUpdateRequest request)
     {
         var result =
             await orderService.UpdateOrder(
@@ -102,8 +102,8 @@ public class OrderController(OrderService orderService) : ControllerBase
         var customerCar = new CustomerCarResponse(order.CustomerCar.Id, car, order.CustomerCar.Customer.FullName,
             order.CustomerCar.Customer.Email, order.CustomerCar.Year, order.CustomerCar.Number);
         var services = order.Services.Select(x => new ServiceResponse(x.Id, x.Name, x.Price, x.Time)).ToList();
-        var response = new OrderResponse(order.Id, order.Status, order.StartDate.ToString("G"),
-            order.EndDate.ToString("G"), order.TotalPrice, order.TotalTime, administrator, employee,
+        var response = new OrderResponse(order.Id, order.Status, order.StartDate.ToLocalTime().ToLocalTime().ToString("dd.MM.yyyy HH:mm"),
+            order.EndDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm"), order.TotalPrice, order.TotalTime, administrator, employee,
             customerCar,
             services);
 

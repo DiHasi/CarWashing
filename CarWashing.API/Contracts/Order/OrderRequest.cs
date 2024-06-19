@@ -5,3 +5,8 @@ public record OrderRequest(
     int EmployeeId,
     int CustomerCarId,
     List<int> ServiceIds);
+    
+public record OrderUpdateRequest(
+    int AdministratorId,
+    int EmployeeId,
+    int CustomerCarId);

@@ -1,9 +1,9 @@
+using System.Globalization;
 using CarWashing.Configurations;
 using CarWashing.Infrastructure;
 using CarWashing.Jwt;
 using CarWashing.Persistence.Context;
 using Microsoft.OpenApi.Models;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,7 +38,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 
 app.UseHttpsRedirection();
 

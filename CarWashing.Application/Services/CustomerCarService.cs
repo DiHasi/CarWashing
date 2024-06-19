@@ -1,3 +1,4 @@
+using CarWashing.Domain.Enums;
 using CarWashing.Domain.Filters;
 using CarWashing.Domain.Interfaces;
 using CarWashing.Domain.Models;
@@ -27,6 +28,7 @@ public class CustomerCarService(ICustomerCarRepository customerCarRepository,
         
         var user = await userRepository.GetUser(userId);
         if (user == null) return Result.Failure<CustomerCar>("User not found");
+        if (!user.Roles.Contains(Role.User)) return Result.Failure<CustomerCar>("User is not customer");
         
         var customerCar = CustomerCar.Create(car, user, year, number);
         if (customerCar.IsFailure) return Result.Failure<CustomerCar>(customerCar.Error);
@@ -45,6 +47,7 @@ public class CustomerCarService(ICustomerCarRepository customerCarRepository,
         
         var user = await userRepository.GetUser(userId);
         if (user == null) return Result.Failure<CustomerCar>("User not found");
+        if (!user.Roles.Contains(Role.User)) return Result.Failure<CustomerCar>("User is not customer");
 
         var result = customerCar.ChangeYear(year);
         if (result.IsFailure) return Result.Failure<CustomerCar>(result.Error);

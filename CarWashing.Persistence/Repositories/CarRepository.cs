@@ -16,9 +16,10 @@ public class CarRepository (CarWashingContext context, IMapper mapper): ICarRepo
     {
         var query = context.Cars
             .AsNoTracking()
-            .Include(c => c.Brand)
-            .OrderBy(c => c.Id)
-            .AutoFilter(filter);
+            .Include(c => c.Brand).AsQueryable();
+        
+        query = filter.ByDescending ? query.OrderByDescending(b => b.Id) : query.OrderBy(b => b.Id);
+        query = query.AutoFilter(filter);
         
         if (filter.OrderBy.HasValue)
         {
@@ -66,9 +67,10 @@ public class CarRepository (CarWashingContext context, IMapper mapper): ICarRepo
     public async Task<Car> AddCar(Car car)
     {
         var carEntity = mapper.Map<CarEntity>(car);
-
-        var brandEntity = await context.Brands.FirstOrDefaultAsync(b => b.Name == car.Brand.Name);
-        if (brandEntity != null) carEntity.Brand = brandEntity;
+        
+        context.Entry(carEntity).State = EntityState.Unchanged;
+        // var brandEntity = await context.Brands.FirstOrDefaultAsync(b => b.Name == car.Brand.Name);
+        // if (brandEntity != null) carEntity.Brand = brandEntity;
         
         var addedCarEntity = context.Cars.Add(carEntity).Entity;
         await context.SaveChangesAsync();

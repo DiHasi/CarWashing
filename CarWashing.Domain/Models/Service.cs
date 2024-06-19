@@ -20,8 +20,8 @@ public class Service
     
     public static Result<Service> Create(string name, int price, int time)
     {
-        if(price < 0) return Result.Failure<Service>("Price cannot be negative");
-        if(time < 0) return Result.Failure<Service>("Time cannot be negative");
+        if(price <= 0) return Result.Failure<Service>("Price must be positive");
+        if(time <= 0) return Result.Failure<Service>("Time must be positive");
         if(string.IsNullOrWhiteSpace(name)) return Result.Failure<Service>("Name cannot be empty");
         
         var service = new Service(name, Price.Create(price), Time.Create(time));

@@ -18,9 +18,10 @@ public class CustomerCarRepository(CarWashingContext context, IMapper mapper) : 
             .Include(c => c.Car)
             .ThenInclude(c => c.Brand)
             .Include(c => c.Customer)
-            .AsNoTracking()
-            .OrderBy(b => b.Id)
-            .AutoFilter(filter);
+            .AsNoTracking();
+        
+        query = filter.ByDescending ? query.OrderByDescending(b => b.Id) : query.OrderBy(b => b.Id);
+        query = query.AutoFilter(filter);
 
         if (filter.OrderBy.HasValue)
         {
@@ -62,6 +63,7 @@ public class CustomerCarRepository(CarWashingContext context, IMapper mapper) : 
             .Include(c => c.Car)
             .ThenInclude(c => c.Brand)
             .Include(c => c.Customer)
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id) ?? null;
         return mapper.Map<CustomerCar>(customerCarEntity);
     }
@@ -70,23 +72,24 @@ public class CustomerCarRepository(CarWashingContext context, IMapper mapper) : 
     {
         var customerCarEntity = mapper.Map<CustomerCarEntity>(customerCar);
 
-        var carEntity = await context.Cars.FindAsync(customerCar.Car.Id);
-        if (carEntity != null)
-        {
-            customerCarEntity.Car = carEntity;
-        }
-        
-        var brandEntity = await context.Brands.FirstOrDefaultAsync(b => b.Name == customerCar.Car.Brand.Name);
-        if (brandEntity != null)
-        {
-            customerCarEntity.Car.Brand = brandEntity;
-        }
-        
-        var customerEntity = await context.Users.FirstOrDefaultAsync(u => u.Email == customerCar.Customer.Email);
-        if (customerEntity != null)
-        {
-            customerCarEntity.Customer = customerEntity;
-        }
+        context.Entry(customerCarEntity).State = EntityState.Unchanged;
+        // var carEntity = await context.Cars.FindAsync(customerCar.Car.Id);
+        // if (carEntity != null)
+        // {
+        //     customerCarEntity.Car = carEntity;
+        // }
+        //
+        // var brandEntity = await context.Brands.FirstOrDefaultAsync(b => b.Name == customerCar.Car.Brand.Name);
+        // if (brandEntity != null)
+        // {
+        //     customerCarEntity.Car.Brand = brandEntity;
+        // }
+        //
+        // var customerEntity = await context.Users.FirstOrDefaultAsync(u => u.Email == customerCar.Customer.Email);
+        // if (customerEntity != null)
+        // {
+        //     customerCarEntity.Customer = customerEntity;
+        // }
         
 
         var addedCustomerCarEntity = context.CustomerCars.Add(customerCarEntity).Entity;

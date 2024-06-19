@@ -25,10 +25,10 @@ public class OrderRepository(CarWashingContext context, IMapper mapper) : IOrder
             .Include(o => o.CustomerCar)
             .ThenInclude(c => c.Customer)
             .Include(o => o.Services)
-            .AsNoTracking()
-            .OrderBy(b => b.Id)
-            .AutoFilter(filter);
+            .AsNoTracking();
 
+        query = filter.ByDescending ? query.OrderByDescending(b => b.Id) : query.OrderBy(b => b.Id);
+        query = query.AutoFilter(filter);
         if (filter.OrderBy.HasValue)
         {
             var sortBy = filter.OrderBy.Value.GetPath();
@@ -75,6 +75,7 @@ public class OrderRepository(CarWashingContext context, IMapper mapper) : IOrder
             .Include(o => o.CustomerCar)
             .ThenInclude(c => c.Customer)
             .Include(o => o.Services)
+            .AsNoTracking()
             .FirstOrDefaultAsync(o => o.Id == id) ?? null;
         return mapper.Map<Order>(orderEntity);
     }
@@ -83,55 +84,15 @@ public class OrderRepository(CarWashingContext context, IMapper mapper) : IOrder
     {
         var orderEntity = mapper.Map<OrderEntity>(order);
 
-        var adminEntity = context.Users.Local.FirstOrDefault(u => u.Id == orderEntity.Administrator.Id)
-                          ?? await context.Users.AsNoTracking()
-                              .FirstOrDefaultAsync(u => u.Id == orderEntity.Administrator.Id);
-
-        if (adminEntity != null)
-        {
-            context.Entry(adminEntity).State = EntityState.Detached;
-            context.Attach(adminEntity);
-            orderEntity.Administrator = adminEntity;
-        }
-
-        var employeeEntity = context.Users.Local.FirstOrDefault(u => u.Id == orderEntity.Employee.Id)
-                             ?? await context.Users.AsNoTracking()
-                                 .FirstOrDefaultAsync(u => u.Id == orderEntity.Employee.Id);
-
-        if (employeeEntity != null)
-        {
-            context.Entry(employeeEntity).State = EntityState.Detached;
-            context.Attach(employeeEntity);
-            orderEntity.Employee = employeeEntity;
-        }
-
-        var customerCarEntity = context.CustomerCars.Local.FirstOrDefault(c => c.Id == orderEntity.CustomerCar.Id)
-                                ?? await context.CustomerCars.AsNoTracking()
-                                    .FirstOrDefaultAsync(c => c.Id == orderEntity.CustomerCar.Id);
-
-        if (customerCarEntity != null)
-        {
-            context.Entry(customerCarEntity).State = EntityState.Detached;
-            context.Attach(customerCarEntity);
-            orderEntity.CustomerCar = customerCarEntity;
-        }
-
-        if (orderEntity.Services != null)
-        {
-            for (var i = 0; i < orderEntity.Services.Count; i++)
-            {
-                var existingService = context.Services.Local.FirstOrDefault(s => s.Id == orderEntity.Services[i].Id)
-                                      ?? await context.Services.AsNoTracking()
-                                          .FirstOrDefaultAsync(s => s.Id == orderEntity.Services[i].Id);
-
-                if (existingService == null) continue;
-                context.Entry(existingService).State = EntityState.Detached;
-                context.Attach(existingService);
-                orderEntity.Services[i] = existingService;
-            }
-        }
+        context.Entry(orderEntity).State = EntityState.Unchanged;
 
         var addedOrder = context.Orders.Add(orderEntity).Entity;
+        if (orderEntity.Services != null)
+            foreach (var serviceEntity in orderEntity.Services)
+            {
+                context.Entry(serviceEntity).State = EntityState.Modified;
+            }
+
         await context.SaveChangesAsync();
 
         return mapper.Map<Order>(addedOrder);
@@ -144,34 +105,32 @@ public class OrderRepository(CarWashingContext context, IMapper mapper) : IOrder
             .Include(o => o.Employee)
             .Include(o => o.Administrator)
             .Include(o => o.CustomerCar)
-            .ThenInclude(c => c.Car)
-            .ThenInclude(c => c.Brand)
-            .Include(o => o.CustomerCar)
-            .ThenInclude(c => c.Customer)
             .Include(o => o.Services)
-            .FirstOrDefaultAsync(o => o.Id == order.Id);
+            .SingleAsync(o => o.Id == order.Id);
 
-        if (orderEntity != null)
+        // context.Entry(orderEntity).CurrentValues.SetValues(order);
+        
+        var newOrderEntity = mapper.Map<OrderEntity>(order);
+        
+        if (orderEntity.Employee.Id != newOrderEntity.Employee.Id)
         {
-            var administratorEntity = await context.Users.FirstOrDefaultAsync(u => u.Id == order.Administrator.Id);
-            if (administratorEntity != null) orderEntity.Administrator = administratorEntity;
-
-            var employeeEntity = await context.Users.FirstOrDefaultAsync(u => u.Id == order.Employee.Id);
-            if (employeeEntity != null) orderEntity.Employee = employeeEntity;
-
-            var customerCarEntity = await context.CustomerCars
-                .Include(c => c.Car)
-                .ThenInclude(c => c.Brand)
-                .Include(c => c.Customer)
-                .FirstOrDefaultAsync(c => c.Id == order.CustomerCar.Id);
-
-            if (customerCarEntity != null) orderEntity.CustomerCar = customerCarEntity;
-
-            orderEntity.Status = order.Status;
-            orderEntity.StartDate = order.StartDate;
-            orderEntity.EndDate = order.EndDate;
-            await context.SaveChangesAsync();
+            orderEntity.Employee = newOrderEntity.Employee;
+            context.Entry(orderEntity.Employee).State = EntityState.Modified;
         }
+        
+        if (orderEntity.Administrator.Id != newOrderEntity.Administrator.Id)
+        {
+            orderEntity.Administrator = newOrderEntity.Administrator;
+            context.Entry(orderEntity.Administrator).State = EntityState.Modified;
+        }
+        
+        if (orderEntity.CustomerCar.Id != newOrderEntity.CustomerCar.Id)
+        {
+            orderEntity.CustomerCar = newOrderEntity.CustomerCar;
+            context.Entry(orderEntity.CustomerCar).State = EntityState.Modified;
+        }
+
+        await context.SaveChangesAsync();
     }
 
     public async Task DeleteOrder(int id)

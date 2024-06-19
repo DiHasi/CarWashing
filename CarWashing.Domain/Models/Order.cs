@@ -77,7 +77,14 @@ public class Order
 
     public Result<Order> AddServices(List<Service> services)
     {
-        if (services.Count == 0) return Result.Failure<Order>("Order must have at least one service");
+        if (services.Count == 0) return Result.Failure<Order>("The list of new services is empty");
+
+        var duplicateServices = services.Where(s => _services.Any(os => os.Id == s.Id)).ToList();
+        if (duplicateServices.Count > 0)
+        {
+            var duplicateServiceNames = string.Join(", ", duplicateServices.Select(s => s.Name));
+            return Result.Failure<Order>($"The following services are already added: {duplicateServiceNames}");
+        }
 
         var servicesToAdd = services.Except(_services).ToList();
         if (servicesToAdd.Count == 0) return Result.Failure<Order>("All services are already added");

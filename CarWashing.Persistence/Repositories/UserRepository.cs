@@ -17,10 +17,11 @@ public class UserRepository(CarWashingContext context, IMapper mapper) : IUserRe
     public async Task<IEnumerable<User>> GetUsers(UserFilter filter)
     {
         var query = context.Users
-            .AsNoTracking()
             .Include(u => u.Roles)
-            .OrderBy(u => u.Id)
-            .AutoFilter(filter);
+            .AsNoTracking();
+
+        query = filter.ByDescending ? query.OrderByDescending(b => b.Id) : query.OrderBy(b => b.Id);
+        query = query.AutoFilter(filter);
 
         if (filter.Roles != null && filter.Roles.Count != 0)
         {
@@ -71,6 +72,7 @@ public class UserRepository(CarWashingContext context, IMapper mapper) : IUserRe
     {
         var userEntity = await context.Users
             .Include(u => u.Roles)
+            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == id);
 
         return mapper.Map<User>(userEntity);
@@ -89,18 +91,16 @@ public class UserRepository(CarWashingContext context, IMapper mapper) : IUserRe
     {
         var userEntity = mapper.Map<UserEntity>(user);
 
-        if (userEntity.Roles != null)
-            for (var i = 0; i < userEntity.Roles.Count; i++)
-            {
-                var existingRole = await context.Roles.FindAsync(userEntity.Roles[i].Id);
-
-                if (existingRole != null)
-                {
-                    userEntity.Roles[i] = existingRole;
-                }
-            }
-
+        context.Entry(userEntity).State = EntityState.Unchanged;
+        
         var addedUser = context.Users.Add(userEntity).Entity;
+        
+        if (addedUser.Roles != null)
+            foreach (var roleEntity in addedUser.Roles)
+            {
+                context.Entry(roleEntity).State = EntityState.Modified;
+            }
+        
         await context.SaveChangesAsync();
 
         return mapper.Map<User>(addedUser);
@@ -108,7 +108,10 @@ public class UserRepository(CarWashingContext context, IMapper mapper) : IUserRe
 
     public async Task<Role> GetRole(Role role)
     {
-        var roleEntity = await context.Roles.FirstOrDefaultAsync(r => r.Name == role.ToString());
+        var roleEntity = await context
+            .Roles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Name == role.ToString());
         return mapper.Map<Role>(roleEntity);
     }
 

@@ -29,9 +29,11 @@ public class OrderService(
     {
         var administrator = await userRepository.GetUser(administratorId);
         if (administrator == null) return Result.Failure<Order>("Administrator not found");
+        if (!administrator.Roles.Contains(Role.Administrator)) return Result.Failure<Order>("Wrong administrator");
 
         var employee = await userRepository.GetUser(employeeId);
         if (employee == null) return Result.Failure<Order>("Employee not found");
+        if (!employee.Roles.Contains(Role.Employee)) return Result.Failure<Order>("Wrong employee");
 
         var customerCar = await customerCarRepository.GetCustomerCar(customerCarId);
         if (customerCar == null) return Result.Failure<Order>("Customer car not found");
@@ -40,6 +42,7 @@ public class OrderService(
 
         var order = Order.Create(administrator, employee, customerCar, services.ToList());
         if (order.IsFailure) return Result.Failure<Order>(order.Error);
+        
 
         return await orderRepository.AddOrder(order.Value);
     }
@@ -51,9 +54,11 @@ public class OrderService(
 
         var administrator = await userRepository.GetUser(administratorId);
         if (administrator == null) return Result.Failure<Order>("Administrator not found");
-
+        if (!administrator.Roles.Contains(Role.Administrator)) return Result.Failure<Order>("Wrong administrator");
+        
         var employee = await userRepository.GetUser(employeeId);
         if (employee == null) return Result.Failure<Order>("Employee not found");
+        if (!employee.Roles.Contains(Role.Employee)) return Result.Failure<Order>("Wrong employee");
 
         var customerCar = await customerCarRepository.GetCustomerCar(customerCarId);
         if (customerCar == null) return Result.Failure<Order>("Customer car not found");
@@ -84,12 +89,8 @@ public class OrderService(
         if(order.Status == Status.Completed) return Result.Failure<Order>("Order already completed");
         
         var newServices = await serviceRepository.GetServices(serviceIds);
-        var existingServiceIds = order.Services.Select(s => s.Id).ToList();
 
-        var servicesToAdd = newServices.Where(s => !existingServiceIds.Contains(s.Id)).ToList();
-
-        if (servicesToAdd.Count == 0) return Result.Failure<Order>("All services are already added");
-        var result = await orderRepository.AddServices(id, servicesToAdd);
+        var result = await orderRepository.AddServices(id, newServices.ToList());
         
         return result.IsFailure ? Result.Failure<Order>(result.Error) : Result.Success(order);
     }

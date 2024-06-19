@@ -15,9 +15,10 @@ public class BrandRepository(CarWashingContext context, IMapper mapper) : IBrand
     public async Task<IEnumerable<Brand>> GetBrands(BrandFilter filter)
     {
         var query = context.Brands
-            .AsNoTracking()
-            .OrderBy(b => b.Id)
-            .AutoFilter(filter);
+            .AsNoTracking();
+        
+        query = filter.ByDescending ? query.OrderByDescending(b => b.Id) : query.OrderBy(b => b.Id);
+        query = query.AutoFilter(filter);
         
         if (filter.OrderBy.HasValue)
         {
@@ -55,7 +56,7 @@ public class BrandRepository(CarWashingContext context, IMapper mapper) : IBrand
 
     public async Task<Brand?> GetBrand(int id)
     {
-        var brandEntity = await context.Brands.FindAsync(id) ?? null;
+        var brandEntity = await context.Brands.AsNoTracking().FirstOrDefaultAsync(b => b.Id == id) ?? null;
         return mapper.Map<Brand>(brandEntity);
     }
 

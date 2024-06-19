@@ -16,9 +16,10 @@ public class ServiceRepository(CarWashingContext context, IMapper mapper) : ISer
     public async Task<IEnumerable<Service>> GetServices(ServiceFilter filter)
     {
         var query = context.Services
-            .AsNoTracking()
-            .OrderBy(s => s.Id)
-            .AutoFilter(filter);
+            .AsNoTracking();
+        
+        query = filter.ByDescending ? query.OrderByDescending(b => b.Id) : query.OrderBy(b => b.Id);
+        query = query.AutoFilter(filter);
 
         if (filter.OrderBy.HasValue)
         {
