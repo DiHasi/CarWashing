@@ -62,6 +62,8 @@ public class OrderService(
 
         var customerCar = await customerCarRepository.GetCustomerCar(customerCarId);
         if (customerCar == null) return Result.Failure<Order>("Customer car not found");
+        
+        if (order.Status == Status.Completed) return Result.Failure<Order>("Order already completed");
 
         var result = order.ChangeAdministrator(administrator);
         if (result.IsFailure) return Result.Failure<Order>(result.Error);
