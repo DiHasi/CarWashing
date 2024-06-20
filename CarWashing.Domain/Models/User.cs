@@ -41,7 +41,16 @@ public partial class User
             return Result.Failure<User>("Data cannot be empty");
         }
 
-        return Result.Success(new User(firstName, lastName, patronymic, email, passwordHash, isSendNotify, roles));
+        if (!NameRegex().IsMatch(firstName)) return Result.Failure<User>("First name is not valid");
+        if (!NameRegex().IsMatch(lastName)) return Result.Failure<User>("Last name is not valid");
+        if (patronymic != null && !NameRegex().IsMatch(patronymic))
+            return Result.Failure<User>("Patronymic name is not valid");
+        
+        if (!EmailRegex().IsMatch(email)) return Result.Failure<User>("Email is not valid");
+
+        var newUser = new User(firstName, lastName, patronymic, email, passwordHash, isSendNotify, roles);
+        
+        return Result.Success(newUser);
     }
 
     public Result<User> AddRole(Role role)

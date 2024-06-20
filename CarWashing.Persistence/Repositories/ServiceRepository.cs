@@ -4,6 +4,7 @@ using AutoMapper;
 using CarWashing.Domain.Filters;
 using CarWashing.Domain.Interfaces;
 using CarWashing.Domain.Models;
+using CarWashing.Domain.ValueObjects;
 using CarWashing.Persistence.Context;
 using CarWashing.Persistence.Entities;
 using CarWashing.Persistence.Entities.ValueObjects;
@@ -85,8 +86,8 @@ public class ServiceRepository(CarWashingContext context, IMapper mapper) : ISer
         if (serviceEntity != null)
         {
             serviceEntity.Name = service.Name;
-            serviceEntity.Price = new PriceEntity(service.Price.MaxValue);
-            serviceEntity.Time = new TimeEntity(service.Time.Minutes);
+            serviceEntity.Price = mapper.Map<PriceEntity>(service.Price);
+            serviceEntity.Time = mapper.Map<TimeEntity>(service.Time);
 
             await context.SaveChangesAsync();
         }

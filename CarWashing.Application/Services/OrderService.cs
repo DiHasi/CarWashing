@@ -42,7 +42,6 @@ public class OrderService(
 
         var order = Order.Create(administrator, employee, customerCar, services.ToList());
         if (order.IsFailure) return Result.Failure<Order>(order.Error);
-        
 
         return await orderRepository.AddOrder(order.Value);
     }

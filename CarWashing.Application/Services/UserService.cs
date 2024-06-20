@@ -76,10 +76,16 @@ public class UserService(
 
         var role = await userRepository.GetRole(Role.User);
         var hash = passwordHasher.Generate(password);
-        var user = User.Create(firstName, lastName, patronymic, email, hash, isSendNotify, [Role.User]).Value;
-        await userRepository.AddUser(user);
+        
+        
+        
+        var result = User.Create(firstName, lastName, patronymic, email, hash, isSendNotify, [Role.User]);
+        
+        if(result.IsFailure) return Result.Failure<string>(result.Error);
+        
+        await userRepository.AddUser(result.Value);
 
-        var token = jwtProvider.GenerateToken(user);
+        var token = jwtProvider.GenerateToken(result.Value);
         return Result.Success(token);
     }
 
