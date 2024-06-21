@@ -6,7 +6,7 @@ namespace CarWashing.Domain.Interfaces;
 
 public interface IOrderRepository
 {
-    Task<IEnumerable<Order>> GetOrders(OrderFilter filter);
+    Task<IEnumerable<Order>> GetOrders(OrderFilter filter, bool isOnlyUser, int userId);
     Task<Order?> GetOrder(int id);
     Task<Order> AddOrder(Order order);
     Task UpdateOrder(Order order);

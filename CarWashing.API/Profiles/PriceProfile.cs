@@ -9,10 +9,10 @@ public class PriceProfile : Profile
     public PriceProfile()
     {
         CreateMap<Price, PriceEntity>()
-            .ForMember(dest => dest.MaxValue,
-                opt => opt.MapFrom(src => src.MaxValue));
-            
+            .ForMember(dest => dest.MinValue,
+                opt => opt.MapFrom(src => src.MinValue));
+
         CreateMap<PriceEntity, Price>()
-            .ConstructUsing(src => Price.Create(src.MaxValue));
+            .ConstructUsing(src => Price.Create(src.MinValue / 100));
     }
 }

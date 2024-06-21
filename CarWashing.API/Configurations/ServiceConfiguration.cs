@@ -1,3 +1,4 @@
+using CarWashing.Application.Interfaces;
 using CarWashing.Application.Interfaces.Auth;
 using CarWashing.Application.Services;
 using CarWashing.Infrastructure;
@@ -16,5 +17,6 @@ public static class ServiceConfiguration
         services.AddScoped<OrderService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtProvider, JwtProvider>();
+        services.AddScoped<IEmailProvider, EmailProvider>();
     }
 }

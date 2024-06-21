@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using CarWashing.Application.Interfaces;
 using CarWashing.Domain.Enums;
 using CarWashing.Domain.Filters;
 using CarWashing.Domain.Interfaces;
@@ -11,12 +13,19 @@ public class OrderService(
     IOrderRepository orderRepository,
     IUserRepository userRepository,
     ICustomerCarRepository customerCarRepository,
-    IServiceRepository serviceRepository)
+    IServiceRepository serviceRepository,
+    IEmailProvider emailProvider)
 {
-    public async Task<Result<IEnumerable<Order>>> GetOrders(OrderFilter filter)
+    public async Task<Result<IEnumerable<Order>>> GetOrders(OrderFilter filter, ClaimsPrincipal user)
     {
-        var orders = await orderRepository.GetOrders(filter);
+        var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        var roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
+        var isOnlyUser = roles.Count == 1 && roles.Contains(Role.User.ToString());
         
+        var orders = await orderRepository.GetOrders(filter, 
+            isOnlyUser, 
+            int.Parse(userId ?? string.Empty));
+
         return Result.Success(orders);
     }
 
@@ -25,7 +34,8 @@ public class OrderService(
         return await orderRepository.GetOrder(id);
     }
 
-    public async Task<Result<Order>> AddOrder(int administratorId, int employeeId, int customerCarId, List<int> serviceIds)
+    public async Task<Result<Order>> AddOrder(int administratorId, int employeeId, int customerCarId,
+        List<int> serviceIds)
     {
         var administrator = await userRepository.GetUser(administratorId);
         if (administrator == null) return Result.Failure<Order>("Administrator not found");
@@ -54,25 +64,25 @@ public class OrderService(
         var administrator = await userRepository.GetUser(administratorId);
         if (administrator == null) return Result.Failure<Order>("Administrator not found");
         if (!administrator.Roles.Contains(Role.Administrator)) return Result.Failure<Order>("Wrong administrator");
-        
+
         var employee = await userRepository.GetUser(employeeId);
         if (employee == null) return Result.Failure<Order>("Employee not found");
         if (!employee.Roles.Contains(Role.Employee)) return Result.Failure<Order>("Wrong employee");
 
         var customerCar = await customerCarRepository.GetCustomerCar(customerCarId);
         if (customerCar == null) return Result.Failure<Order>("Customer car not found");
-        
+
         if (order.Status == Status.Completed) return Result.Failure<Order>("Order already completed");
 
         var result = order.ChangeAdministrator(administrator);
         if (result.IsFailure) return Result.Failure<Order>(result.Error);
-        
+
         result = order.ChangeEmployee(employee);
         if (result.IsFailure) return Result.Failure<Order>(result.Error);
-        
+
         result = order.ChangeCustomerCar(customerCar);
         if (result.IsFailure) return Result.Failure<Order>(result.Error);
-        
+
         await orderRepository.UpdateOrder(order);
 
         return Result.Success(order);
@@ -87,23 +97,28 @@ public class OrderService(
     {
         var order = await orderRepository.GetOrder(id);
         if (order == null) return Result.Failure<Order>("Order not found");
-        if(order.Status == Status.Completed) return Result.Failure<Order>("Order already completed");
-        
+        if (order.Status == Status.Completed) return Result.Failure<Order>("Order already completed");
+
         var newServices = await serviceRepository.GetServices(serviceIds);
 
         var result = await orderRepository.AddServices(id, newServices.ToList());
-        
+
         return result.IsFailure ? Result.Failure<Order>(result.Error) : Result.Success(order);
     }
-    
+
     public async Task<Result<Order>> CompleteOrder(int id)
     {
         var order = await orderRepository.GetOrder(id);
         if (order == null) return Result.Failure<Order>("Order not found");
-        if(order.Status == Status.Completed) return Result.Failure<Order>("Order already completed");
-        
+        if (order.Status == Status.Completed) return Result.Failure<Order>("Order already completed");
+        if (order.CustomerCar.Customer.IsSendNotify)
+            await emailProvider.SendEmailAsync(
+                order.CustomerCar.Customer.Email, 
+                "Order completed", 
+                "Your order has been completed");
+
         await orderRepository.CompleteOrder(id);
-        
+
         return Result.Success(order);
     }
 }

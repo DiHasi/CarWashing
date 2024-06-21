@@ -9,10 +9,10 @@ public class TimeProfile : Profile
     public TimeProfile()
     {
         CreateMap<Time, TimeEntity>()
-            .ForMember(dest => dest.Minutes,
-                opt => opt.MapFrom(src => src.Minutes));
+            .ForMember(dest => dest.Seconds,
+                opt => opt.MapFrom(src => src.Seconds));
 
         CreateMap<TimeEntity, Time>()
-            .ConstructUsing(src => Time.Create(src.Minutes));
+            .ConstructUsing(src => Time.Create(src.Seconds / 60));
     }
 }

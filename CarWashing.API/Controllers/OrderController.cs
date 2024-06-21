@@ -13,15 +13,16 @@ namespace CarWashing.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = nameof(Role.Administrator)+", "+nameof(Role.Employee))]
+[Authorize(Roles = nameof(Role.Administrator)+","+nameof(Role.Employee)+","+nameof(Role.User))]
 public class OrderController(OrderService orderService) : ControllerBase
 {
     // GET: api/Order
     [HttpGet]
+    [Authorize(Roles = nameof(Role.User))]
     public async Task<ActionResult<IEnumerable<OrderResponse>>> GetOrders(
         [FromQuery] OrderFilter filter)
     {
-        var orders = await orderService.GetOrders(filter);
+        var orders = await orderService.GetOrders(filter, User);
 
         var ordersList = orders.Value.ToList();
 
@@ -44,6 +45,7 @@ public class OrderController(OrderService orderService) : ControllerBase
     }
 
     // GET: api/Order/5
+    [Authorize(Roles = nameof(Role.Administrator)+","+nameof(Role.Employee))]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<OrderResponse>> GetOrder(int id)
     {

@@ -14,7 +14,7 @@ namespace CarWashing.Persistence.Repositories;
 
 public class OrderRepository(CarWashingContext context, IMapper mapper) : IOrderRepository
 {
-    public async Task<IEnumerable<Order>> GetOrders(OrderFilter filter)
+    public async Task<IEnumerable<Order>> GetOrders(OrderFilter filter, bool isOnlyUser, int userId)
     {
         var query = context.Orders
             .Include(o => o.Employee)
@@ -26,6 +26,11 @@ public class OrderRepository(CarWashingContext context, IMapper mapper) : IOrder
             .ThenInclude(c => c.Customer)
             .Include(o => o.Services)
             .AsNoTracking();
+
+        if (isOnlyUser)
+        {
+            query = query.Where(o => o.CustomerCar.Customer.Id == userId);
+        }
 
         query = filter.ByDescending ? query.OrderByDescending(b => b.Id) : query.OrderBy(b => b.Id);
         query = query.AutoFilter(filter);
